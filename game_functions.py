@@ -1,3 +1,10 @@
+"""This program contains functions for an adventure game.
+
+There are four functions currently in here, those being purchase_item, new_random_monster,
+print_wellcome, and print_shop_menu. This program currently just contains these functions,
+as well as a few examples of them being used.
+"""
+
 #game functions assignment CSCI 150
 
 def purchase_item(itemPrice, startingMoney, quantityToPurchase = 1):
@@ -83,63 +90,72 @@ def print_shop_menu(item1Name, item1Price, item2Name, item2Price):
     print(f"| {item2Name:<12}{price2:>8} |")
     print("\\" + "-" * 22 + "/")
 
-#examples of purchase_item function
+#Testing functions
 
-items_bought, money_left = purchase_item(10, 126, 2)
+def test_functions():
+    """Only it used when file is run directly, test_functions gives a few
+    examples of the functions above working.
+    """
+    #examples of purchase_item function
 
-print(f"you bought {items_bought} items and have ${money_left} left.")
+    items_bought, money_left = purchase_item(10, 126, 2)
 
-#2
+    print(f"you bought {items_bought} items and have ${money_left} left.")
 
-items_bought, money_left = purchase_item(2000, 10, 2)
+    #2
 
-print(f"you bought {items_bought} items and have ${money_left} left.")
+    items_bought, money_left = purchase_item(2000, 10, 2)
 
-#3
+    print(f"you bought {items_bought} items and have ${money_left} left.")
 
-items_bought, money_left = purchase_item(2, 4859, 10000)
+    #3
 
-print(f"you bought {items_bought} items and have ${money_left} left.")
+    items_bought, money_left = purchase_item(2, 4859, 10000)
 
-#examples of new_random_monster
+    print(f"you bought {items_bought} items and have ${money_left} left.")
 
-monster = new_random_monster()
+    #examples of new_random_monster
 
-print(monster["name"])
-print(monster["health"])
-print(monster["power"])
-print("")
+    monster = new_random_monster()
 
-#2
+    print(monster["name"])
+    print(monster["health"])
+    print(monster["power"])
+    print("")
 
-monster = new_random_monster()
+    #2
 
-print(monster["name"])
-print(monster["description"])
-print(monster["money"])
-print("")
+    monster = new_random_monster()
 
-#3
+    print(monster["name"])
+    print(monster["description"])
+    print(monster["money"])
+    print("")
 
-monster = new_random_monster()
+    #3
 
-print(monster["name"])
-print(monster["description"])
-print(monster["power"])
-print(monster["health"])
+    monster = new_random_monster()
 
-#Examples of print_welcome
+    print(monster["name"])
+    print(monster["description"])
+    print(monster["power"])
+    print(monster["health"])
 
-print_welcome("Elisha", 30)
+    #Examples of print_welcome
 
-print_welcome("Bob", 20)
+    print_welcome("Elisha", 30)
 
-print_welcome("Jeff", 24)
+    print_welcome("Bob", 20)
 
-#Examples of print_shop_menu
+    print_welcome("Jeff", 24)
 
-print_shop_menu("Sword", 1354.34, "Armor", 32.34)
+    #Examples of print_shop_menu
 
-print_shop_menu("Bagel", 5.76, "Cheese", 3.45)
+    print_shop_menu("Sword", 1354.34, "Armor", 32.34)
 
-print_shop_menu("Spell Book stuff", 730.56, "Health Potion", 78.00)
+    print_shop_menu("Bagel", 5.76, "Cheese", 3.45)
+
+    print_shop_menu("Spell Book stuff", 730.56, "Health Potion", 78.00)
+
+if __name__ == "__main__":
+    test_functions()
