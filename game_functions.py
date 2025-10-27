@@ -1,4 +1,5 @@
-"""This program contains functions for an adventure game.
+"""
+This program contains functions for an adventure game.
 
 There are four functions currently in here, those being purchase_item, new_random_monster,
 print_wellcome, and print_shop_menu. This program currently just contains these functions,
@@ -6,6 +7,67 @@ as well as a few examples of them being used.
 """
 
 #game functions assignment CSCI 150
+
+#sleeping function
+
+def sleep(player_hp, player_gold):
+    """This function is called when players chooses the sleep action"""
+
+    print("""
+You slept well for the night
+          """)
+
+    player_hp += 10
+    player_gold -= 10
+
+    return player_hp, player_gold
+
+#Fighting function
+
+def fight(player_hp, player_gold):
+    """lets the player fight a monster"""
+    
+    monster = new_random_monster()
+    mons_hp = monster["health"]
+
+    print(f"""
+{monster["description"]}
+Health: {player_hp}. Gold {player_gold}""")
+
+    while True:
+
+        print(f"""Monster health: {mons_hp}. Your health: {player_hp}""")
+        action = input("What would you like to do? attack, run. ")
+
+        if action == "attack":
+            mons_hp -= 10
+            player_hp -= 10
+            print("You attacked!")
+
+            if player_hp <= 0:
+
+                print("You died oh noooooooooo")
+                return player_hp, player_gold
+                      
+            elif mons_hp <= 0:
+                print("you defteated the monster!!!")
+
+                player_gold += monster["money"]
+                
+                return player_hp, player_gold
+
+        elif action == "run":
+
+            return player_hp, player_gold
+        
+        else:
+            print("""
+Invalid input.
+                  """)
+    
+
+
+#purchase item function    
 
 def purchase_item(itemPrice, startingMoney, quantityToPurchase = 1):
     """ 
@@ -31,8 +93,8 @@ def new_random_monster():
 
     if monster_choice == "A witch":
         description = """
-        There is a witch sitting in a hollowed out tree in front of you,
-        you don't know what its intentions are yet.
+There is a witch sitting in a hollowed out tree in front of you,
+you don't know what its intentions are yet.
         """
         health = random.randint(20, 50)
         power = random.randint(200, 1000)
@@ -40,8 +102,8 @@ def new_random_monster():
 
     elif monster_choice == "A fairy":
         description = """
-        A small fairy hovers next to you, ethereal in it's presence,
-        you feel safe and warm, but don't get too close for you don't know its secrets.
+A small fairy hovers next to you, ethereal in it's presence,
+you feel safe and warm, but don't get too close for you don't know its secrets.
         """
         health = random.randint(2, 5)
         power = random.randint(10, 10000)
@@ -49,8 +111,8 @@ def new_random_monster():
 
     elif monster_choice == "A goul":
         description = """
-        A goul jumps at you from the shadows, draw your weapon quickly,
-        for gouls are known to be very viloent and difficult to reason with.
+A goul jumps at you from the shadows, draw your weapon quickly,
+for gouls are known to be very viloent and difficult to reason with.
         """
         health = random.randint(2000, 10000)
         power = random.randint(100, 500)
@@ -90,7 +152,9 @@ def print_shop_menu(item1Name, item1Price, item2Name, item2Price):
     print(f"| {item2Name:<12}{price2:>8} |")
     print("\\" + "-" * 22 + "/")
 
-#Testing functions
+
+
+#Testing functions - All code below this line is for testing purposes
 
 def test_functions():
     """Only it used when file is run directly, test_functions gives a few
