@@ -1,39 +1,36 @@
-"""Core gameplay loop, lets you preform different actions from town
-the loop ends if player health or money goes below zero"""
+"""Core gameplay loop, lets you preform different actions from town,
+the loop ends if player health or money goes to or below zero"""
 
 import game_functions as gf
 
-gf.print_welcome(input("Please input the name of player: "), 50)
+player = {"name": "", "hp": 100, "gold": 1000, "location": "town", "life": True}
+inventory = []
+shop = [
+       {"name": "Sword", "type": "weapon", "power": 100, "cost": 100, "durab": 10},
+       {"name": "Poison", "type": "item", "power": 10000, "cost": 800, "durab": 1}
+]
 
-player_gold = 100
-player_hp = 100
-life = True
+gf.print_welcome(player, 50)
 
-while (player_hp > 0) and (player_gold > 0):
+while (player["hp"] > 0) and (player["gold"] > 0):
+    # player["equipped"] = {"name": "nothing"}
+    action = gf.town_menu(player, inventory)
+
+    if action == "leave":
+            gf.fight(player, inventory)
+
+    elif action == "shop":
+            gf.purchase_item(player, inventory, shop)
         
-        print(f"""
-Your health: {player_hp}. Your gold: {player_gold}.
-You're in town, what do you want to do? Or actions are:
-leave (fight monster), sleep (restore 10hp for 10 gold), or quit game.
-              """)
+    elif action == "sleep":
+            gf.sleep(player)
         
-        action = input("leave town, sleep, or quit: ")
-
-        if action == "leave":
-
-            player_hp, player_gold = gf.fight(player_hp, player_gold)
-        
-        elif action == "sleep":
-
-            player_hp, player_gold = gf.sleep(player_hp, player_gold)
-        
-        elif action == "quit":
-            break
+    elif action == "quit":
+            player["hp"] = 0
             
-        else:
-            print("""
-Invalid input.
-                  """)
+    else:
+        print("""
+Invalid input, please re-enter your action.""")
             
 print("Thank you for playing!")
 

@@ -8,76 +8,103 @@ as well as a few examples of them being used.
 
 #game functions assignment CSCI 150
 
+#town greeting function
+
+def town_menu(player, inventory):
+    """Displays the options that the player has in town"""
+
+    print("Your current items:")
+    print([(item["name"], item["durab"]) for item in inventory])
+    print(f"""
+Your health: {player["hp"]}
+Your gold: {player["gold"]}
+
+You're in town, what do you want to do? Your actions are:
+leave (fight monster), shop (item shop), sleep (restore 10hp for 10 gold), or quit game.""")
+        
+    action = input("")
+    return action
+
 #sleeping function
 
-def sleep(player_hp, player_gold):
+def sleep(player):
     """This function is called when players chooses the sleep action"""
 
     print("""
 You slept well for the night
           """)
 
-    player_hp += 10
-    player_gold -= 10
+    player["hp"] += 50
+    player["gold"] -= 10
 
-    return player_hp, player_gold
+#fighting function
 
-#Fighting function
-
-def fight(player_hp, player_gold):
-    """lets the player fight a monster"""
+def fight(player, inventory):
+    """Lets the player fight a monster"""
     
     monster = new_random_monster()
-    mons_hp = monster["health"]
 
     print(f"""
+You leave the town and enter the woods, in the woods
 {monster["description"]}
-Health: {player_hp}. Gold {player_gold}""")
+""")
 
     while True:
 
-        print(f"""Monster health: {mons_hp}. Your health: {player_hp}""")
-        action = input("What would you like to do? attack, run. ")
+        print(f"""Your health: {player["hp"]}. Your gold {player["gold"]}
+Monster health: {monster["hp"]}. Monster power: {monster["power"]}""")
+        
+        if "equipped" in player:
+            print(f"You currently have {player["equipped"]["name"]} equipped\n")
+        
+        action = input("What would you like to do? attack, equip (equip item), run.\n")
 
-        if action == "attack":
-            mons_hp -= 10
-            player_hp -= 10
-            print("You attacked!")
+        if action == "equip":
+            print([item["name"] for item in inventory])
+            equip = input("What do you want to equip?\n")
+            for item in inventory:
+                if equip == item["name"]:
+                    print(f"You equipped {item["name"]}")
+                    player["equipped"] = item
+                else:
+                    print("You do not have that item")
 
-            if player_hp <= 0:
+        elif action == "attack":
+            if "equipped" in player:
+                damage = player["equipped"]["power"]
+                player["equipped"]["durab"] -= 1
+                    
+                if player["equipped"]["durab"] <= 0:
+                    inventory.remove(player["equipped"])
+                    # player["equipped"] = {"name": "nothing"}
+                    
+            else:
+                damage = 10
 
-                print("You died oh noooooooooo")
-                return player_hp, player_gold
+            monster["hp"] -= damage
+            print(f"You attacked for {damage} damage!\n")
                       
-            elif mons_hp <= 0:
-                print("you defteated the monster!!!")
+            if monster["hp"] <= 0:
+                print("you defteated the monster!\n")
 
-                player_gold += monster["money"]
-                
-                return player_hp, player_gold
+                player["gold"] += monster["gold"]
+
+                return player
+            
+            player["hp"] -= monster["power"]
+
+            if player["hp"] <= 0:
+
+                print("You died!")
+
+                return player
 
         elif action == "run":
 
-            return player_hp, player_gold
+            return player
         
         else:
-            print("""
-Invalid input.
-                  """)
-    
-
-
-#purchase item function    
-
-def purchase_item(itemPrice, startingMoney, quantityToPurchase = 1):
-    """ 
-    Allows you to purchase quantityToPurchase items, each costing itemPrice,
-    with startingMoney available. Returns items_purchased and money_left. 
-    """
-    max_affordable = startingMoney // itemPrice
-    items_bought = min(quantityToPurchase, max_affordable)
-    money_left = startingMoney - (items_bought * itemPrice)
-    return items_bought, money_left
+            print("""Invalid input, please re-enter action.""")
 
 #random monster generator
 
@@ -92,65 +119,92 @@ def new_random_monster():
     monster_choice = random.choice(monster_list)
 
     if monster_choice == "A witch":
-        description = """
-There is a witch sitting in a hollowed out tree in front of you,
-you don't know what its intentions are yet.
-        """
-        health = random.randint(20, 50)
-        power = random.randint(200, 1000)
-        money = random.randint(500, 5000)
+        description = """There is a witch sitting in a hollowed out tree in front of you,
+you don't know what its intentions are yet."""
+
+        health = random.randint(50, 100)
+        power = random.randint(50, 90)
+        money = random.randint(0, 100)
 
     elif monster_choice == "A fairy":
-        description = """
-A small fairy hovers next to you, ethereal in it's presence,
-you feel safe and warm, but don't get too close for you don't know its secrets.
-        """
-        health = random.randint(2, 5)
-        power = random.randint(10, 10000)
+        description = """A small fairy hovers next to you, ethereal in it's presence,
+you feel safe and warm, but don't get too close for you don't know its secrets."""
+
+        health = random.randint(20, 100)
+        power = random.randint(10, 90)
         money = random.randint(0, 20)
 
     elif monster_choice == "A goul":
-        description = """
-A goul jumps at you from the shadows, draw your weapon quickly,
-for gouls are known to be very viloent and difficult to reason with.
-        """
-        health = random.randint(2000, 10000)
-        power = random.randint(100, 500)
-        money = random.randint(1, 500)
+        description = """A goul jumps at you from the shadows, draw your weapon quickly,
+for gouls are known to be very viloent and difficult to reason with."""
+
+        health = random.randint(100, 5000)
+        power = random.randint(80, 90)
+        money = random.randint(0, 200)
     
     return {"name": monster_choice, 
             "description": description, 
-            "health": health, 
+            "hp": health, 
             "power": power, 
-            "money": money}
+            "gold": money}
 
 #print_welcome function
 
-def print_welcome(name, width):
-    """
-    Creates and prints a welcome greeting string with the given name and width specified.
-    """
-    greeting = f"Hello, {name}!"
+def print_welcome(player, width):
+    """Creates and prints a welcome greeting string with the given name and width specified."""
+
+    player["name"] = input("Please input your name:\n")
+    greeting = f"Hello, {player["name"]}!"
     print(f"{greeting.center(width)}")
 
 #print_shop_menu function
 
-def print_shop_menu(item1Name, item1Price, item2Name, item2Price):
-    """
-    Creates and prints a menu with the items names and prices as parameters.
-    """
-    if len(item1Name) > 12:
-        item1Name = f"{item1Name[0:10]}…"
-    if len(item2Name) > 12:
-        item2Name = f"{item2Name[0:10]}…"
+def print_shop_menu(player, inventory, shop):
+    """Creates and prints a menu with the items names and prices as parameters."""
 
-    price1 = f"${item1Price:.2f}"
-    price2 = f"${item2Price:.2f}"
-
+    print("You enter the local shop in town.\n")
     print("/" + "-" * 22 + "\\")
-    print(f"| {item1Name:<12}{price1:>8} |")
-    print(f"| {item2Name:<12}{price2:>8} |")
+    print(f"| {shop[0]["name"]:<12}{shop[0]["cost"]:>3} gold |")
+    print(f"| {shop[1]["name"]:<12}{shop[1]["cost"]:>3} gold |")
     print("\\" + "-" * 22 + "/")
+
+    print([item["name"] for item in inventory])
+    print(f"Your gold: {player["gold"]}")
+
+#purchase item function    
+
+def purchase_item(player, inventory, shop):
+    """Lets the player purchase an item from the shop. It takes the players
+inventory and the shops items as parameters and returns the updated inventory"""
+
+    while True:
+        print_shop_menu(player, inventory, shop)
+        purchase = input("What would you like to buy? or do you want to leave?\n")
+
+        if purchase == shop[0]["name"]:
+            if player["gold"] >= shop[0]["cost"]:
+                inventory.append(shop[0])
+                player["gold"] -= shop[0]["cost"]
+
+            else:
+                print("""
+You don't have enough money for that!""")
+                
+        elif purchase == shop[1]["name"]:
+            if player["gold"] >= shop[1]["cost"]:
+                inventory.append(shop[1])
+                player["gold"] -= shop[1]["cost"]
+                         
+            else:
+                print("""
+You don't have enough money for that!""")
+        
+        elif purchase == "leave":
+            break
+
+        else:
+            print("""
+    Invalid input, please re-enter your action.""")
 
 
 
@@ -158,8 +212,8 @@ def print_shop_menu(item1Name, item1Price, item2Name, item2Price):
 
 def test_functions():
     """Only it used when file is run directly, test_functions gives a few
-    examples of the functions above working.
-    """
+examples of the functions above working."""
+
     #examples of purchase_item function
 
     items_bought, money_left = purchase_item(10, 126, 2)
