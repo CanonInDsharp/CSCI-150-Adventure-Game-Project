@@ -1,26 +1,70 @@
-"""
-This program contains functions for an adventure game.
+"""This program contains functions for an adventure game.
 
 There are four functions currently in here, those being purchase_item, new_random_monster,
 print_wellcome, and print_shop_menu. This program currently just contains these functions,
-as well as a few examples of them being used.
-"""
+as well as a few examples of them being used."""
+
+import json
+import os
+import random
 
 #game functions assignment CSCI 150
 
+def load_save():
+    """gives the player the choice to load previous saves"""
+
+    game_saves = []
+    for item in os.listdir():
+        if item.endswith(".json"):
+            game_saves.append(item)
+
+    if game_saves:
+        choice = input("Load a save? (yes or no)\n")
+
+        if choice == "yes":
+            print(game_saves)
+            while True:
+                save_choice = input("Which save?\n")
+                file_name = save_choice + ".json"
+                if file_name in game_saves:
+                    with open(file_name, "r") as f:
+                        player = json.load(f)
+                        print(f"loaded {file_name}")
+                    return player
+                else:
+                    print("Save not found")
+        elif choice == "no":
+            print("You started a new game")
+            return
+        else:
+            print("INVALID INPUT")
+    else:
+        print("No saves found.\n")
+
+def save(player):
+    """Lets player save thier progress as a game save"""
+
+    save_name = input("Name of your save?:\n")
+    if not save_name.endswith(".json"):
+        save_name += ".json"
+
+    with open(save_name, "w") as f:
+        json.dump(player, f)
+    print(f"Game saved as {save_name}")
+
 #town greeting function
 
-def town_menu(player, inventory):
+def town_menu(player):
     """Displays the options that the player has in town"""
 
     print("Your current items:")
-    print([(item["name"], item["durab"]) for item in inventory])
+    print([(item["name"], item["durab"]) for item in player["inventory"]])
     print(f"""
-Your health: {player["hp"]}
-Your gold: {player["gold"]}
+Your health: {player["stats"]["hp"]}
+Your gold: {player["stats"]["gold"]}
 
 You're in town, what do you want to do? Your actions are:
-leave (fight monster), shop (item shop), sleep (restore 10hp for 10 gold), or quit game.""")
+fight (fight monster), shop (item shop), sleep (restore 50hp for 10 gold), save, or quit game.""")
         
     action = input("")
     return action
@@ -28,87 +72,76 @@ leave (fight monster), shop (item shop), sleep (restore 10hp for 10 gold), or qu
 #sleeping function
 
 def sleep(player):
-    """This function is called when players chooses the sleep action"""
+    """Lets the player sleep"""
 
-    print("""
-You slept well for the night
-          """)
+    print("\nYou slept well for the night\n")
 
-    player["hp"] += 50
-    player["gold"] -= 10
+    player["stats"]["hp"] += 50
+    player["stats"]["gold"] -= 10
 
 #fighting function
 
-def fight(player, inventory):
+def fight(player):
     """Lets the player fight a monster"""
     
     monster = new_random_monster()
 
-    print(f"""
-You leave the town and enter the woods, in the woods
-{monster["description"]}
-""")
+    print(f"You leave the town and enter the woods, in the woods\n{monster["description"]}\n")
 
     while True:
 
-        print(f"""Your health: {player["hp"]}. Your gold {player["gold"]}
+        print(f"""Your health: {player["stats"]["hp"]}. Your gold {player["stats"]["gold"]}
 Monster health: {monster["hp"]}. Monster power: {monster["power"]}""")
         
-        if "equipped" in player:
-            print(f"You currently have {player["equipped"]["name"]} equipped\n")
+        for item in player["inventory"]:
+            if item["equipped"] == True:
+                print(f"You currently have {item["name"]} equipped\n")
         
-        action = input("What would you like to do? attack, equip (equip item), run.\n")
+        action = input("What would you like to do? attack, equip (equip item), leave.\n")
 
         if action == "equip":
-            print([item["name"] for item in inventory])
+            for item in player["inventory"]:
+                print(item["name"])
+
             equip = input("What do you want to equip?\n")
-            for item in inventory:
+            for item in player["inventory"]:
                 if equip == item["name"]:
                     print(f"You equipped {item["name"]}")
-                    player["equipped"] = item
+                    item["equipped"] = True
                 else:
                     print("You do not have that item")
 
         elif action == "attack":
-            if "equipped" in player:
-                damage = player["equipped"]["power"]
-                player["equipped"]["durab"] -= 1
-                    
-                if player["equipped"]["durab"] <= 0:
-                    inventory.remove(player["equipped"])
-                    # player["equipped"] = {"name": "nothing"}
-                    
-            else:
-                damage = 10
+            damage = 10
+            for item in player["inventory"]:
+                if item["equipped"] == True:
+                    damage = item["power"]
+                    item["durab"] -= 1
+                        
+                    if item["durab"] <= 0:
+                        player["inventory"].remove(item)
 
             monster["hp"] -= damage
             print(f"You attacked for {damage} damage!\n")
                       
             if monster["hp"] <= 0:
                 print("you defteated the monster!\n")
-
-                player["gold"] += monster["gold"]
-
+                player["stats"]["gold"] += monster["gold"]
                 return player
             
-            player["hp"] -= monster["power"]
+            player["stats"]["hp"] -= monster["power"]
 
-            if player["hp"] <= 0:
-
-                print("You died!")
-
+            if player["stats"]["hp"] <= 0:
+                print("You died!\n")
                 return player
 
-        elif action == "run":
-
+        elif action == "leave":
             return player
         
         else:
-            print("""Invalid input, please re-enter action.""")
+            print("Invalid input, please re-enter action.\n")
 
 #random monster generator
-
-import random
 
 def new_random_monster():
     """ 
@@ -127,7 +160,7 @@ you don't know what its intentions are yet."""
         money = random.randint(0, 100)
 
     elif monster_choice == "A fairy":
-        description = """A small fairy hovers next to you, ethereal in it's presence,
+        description = """a small fairy hovers next to you, ethereal in it's presence,
 you feel safe and warm, but don't get too close for you don't know its secrets."""
 
         health = random.randint(20, 100)
@@ -135,7 +168,7 @@ you feel safe and warm, but don't get too close for you don't know its secrets."
         money = random.randint(0, 20)
 
     elif monster_choice == "A goul":
-        description = """A goul jumps at you from the shadows, draw your weapon quickly,
+        description = """a goul jumps at you from the shadows, draw your weapon quickly,
 for gouls are known to be very viloent and difficult to reason with."""
 
         health = random.randint(100, 5000)
@@ -159,121 +192,53 @@ def print_welcome(player, width):
 
 #print_shop_menu function
 
-def print_shop_menu(player, inventory, shop):
+def print_shop_menu(player, shop):
     """Creates and prints a menu with the items names and prices as parameters."""
 
     print("You enter the local shop in town.\n")
     print("/" + "-" * 22 + "\\")
-    print(f"| {shop[0]["name"]:<12}{shop[0]["cost"]:>3} gold |")
-    print(f"| {shop[1]["name"]:<12}{shop[1]["cost"]:>3} gold |")
+    for item in shop:
+        print(f"| {item["name"]:<12}{item["cost"]:>3} gold |")
     print("\\" + "-" * 22 + "/")
 
-    print([item["name"] for item in inventory])
-    print(f"Your gold: {player["gold"]}")
+    print([item["name"] for item in player["inventory"]])
+    print(f"Your gold: {player["stats"]["gold"]}")
 
 #purchase item function    
 
-def purchase_item(player, inventory, shop):
+def purchase_item(player, shop):
     """Lets the player purchase an item from the shop. It takes the players
-inventory and the shops items as parameters and returns the updated inventory"""
+inventory and the shops items as parameters and returns the updated inventory and stats"""
 
     while True:
-        print_shop_menu(player, inventory, shop)
+        print_shop_menu(player, shop)
         purchase = input("What would you like to buy? or do you want to leave?\n")
 
-        if purchase == shop[0]["name"]:
-            if player["gold"] >= shop[0]["cost"]:
-                inventory.append(shop[0])
-                player["gold"] -= shop[0]["cost"]
+        for item in player["inventory"]:
+            if purchase == item["name"]:
+                print("You already have that!")
+    
+        for item in shop:
+            if purchase == item["name"]:
+                if player["stats"]["gold"] >= item["cost"]:
+                    player["inventory"].append(item)
+                    player["stats"]["gold"] -= item["cost"]
 
-            else:
-                print("""
-You don't have enough money for that!""")
-                
-        elif purchase == shop[1]["name"]:
-            if player["gold"] >= shop[1]["cost"]:
-                inventory.append(shop[1])
-                player["gold"] -= shop[1]["cost"]
-                         
-            else:
-                print("""
-You don't have enough money for that!""")
+                else:
+                    print("\nYou don't have enough money for that!")
         
-        elif purchase == "leave":
+        if purchase == "leave":
             break
 
         else:
-            print("""
-    Invalid input, please re-enter your action.""")
+            print("\nInvalid input, please re-enter your action.")
 
 
 
 #Testing functions - All code below this line is for testing purposes
 
 def test_functions():
-    """Only it used when file is run directly, test_functions gives a few
-examples of the functions above working."""
-
-    #examples of purchase_item function
-
-    items_bought, money_left = purchase_item(10, 126, 2)
-
-    print(f"you bought {items_bought} items and have ${money_left} left.")
-
-    #2
-
-    items_bought, money_left = purchase_item(2000, 10, 2)
-
-    print(f"you bought {items_bought} items and have ${money_left} left.")
-
-    #3
-
-    items_bought, money_left = purchase_item(2, 4859, 10000)
-
-    print(f"you bought {items_bought} items and have ${money_left} left.")
-
-    #examples of new_random_monster
-
-    monster = new_random_monster()
-
-    print(monster["name"])
-    print(monster["health"])
-    print(monster["power"])
-    print("")
-
-    #2
-
-    monster = new_random_monster()
-
-    print(monster["name"])
-    print(monster["description"])
-    print(monster["money"])
-    print("")
-
-    #3
-
-    monster = new_random_monster()
-
-    print(monster["name"])
-    print(monster["description"])
-    print(monster["power"])
-    print(monster["health"])
-
-    #Examples of print_welcome
-
-    print_welcome("Elisha", 30)
-
-    print_welcome("Bob", 20)
-
-    print_welcome("Jeff", 24)
-
-    #Examples of print_shop_menu
-
-    print_shop_menu("Sword", 1354.34, "Armor", 32.34)
-
-    print_shop_menu("Bagel", 5.76, "Cheese", 3.45)
-
-    print_shop_menu("Spell Book stuff", 730.56, "Health Potion", 78.00)
+    pass
 
 if __name__ == "__main__":
     test_functions()
