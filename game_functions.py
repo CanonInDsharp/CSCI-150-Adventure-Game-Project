@@ -6,9 +6,83 @@ as well as a few examples of them being used."""
 
 import json
 import os
+import pygame
 import random
 
 #game functions assignment CSCI 150
+
+def display_map(player):
+    pygame.init()
+
+    CELL = 32
+    GRID = 10
+    W = CELL * GRID
+    H = CELL * GRID
+
+    screen = pygame.display.set_mode((320, 320))
+    clock = pygame.time.Clock()
+
+    px, py = player["stats"]["location"]
+    town = [0, 0]
+    monster = [5, 5]
+
+    left_town_once = False
+    left_monster_once = False
+    running = True
+
+    while running:
+        screen.fill((255, 255, 255))
+
+        for x in range(GRID):
+            for y in range(GRID):
+                rect = pygame.Rect(x * CELL, y * CELL, CELL, CELL)
+                pygame.draw.rect(screen, (200, 200, 200), rect, 1)
+
+        tx, ty = town
+        pygame.draw.circle(screen, (0, 180, 0), (tx * CELL + CELL//2, ty * CELL + CELL//2), CELL//3)
+
+        mx, my = monster
+        pygame.draw.circle(screen, (200, 0, 0), (mx * CELL + CELL//2, my * CELL + CELL//2), CELL//3)
+
+        pygame.draw.rect(screen, (50, 100, 255), pygame.Rect(px * CELL, py * CELL, CELL, CELL))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    px = max(0, px - 1)
+                elif event.key == pygame.K_RIGHT:
+                    px = min(GRID - 1, px + 1)
+                elif event.key == pygame.K_UP:
+                    py = max(0, py - 1)
+                elif event.key == pygame.K_DOWN:
+                    py = min(GRID - 1, py + 1)
+
+        if [px, py] != town:
+            left_town_once = True
+        if [px, py] != monster:
+            left_monster_once = True
+
+        if [px, py] == monster and left_monster_once:
+            player["stats"]["location"] = monster
+            running = False
+            pygame.quit()
+            fight(player)
+
+        if [px, py] == town and left_town_once:
+            player["stats"]["location"] = town
+            running = False
+            pygame.quit()
+            town_menu(player)
+
+        clock.tick(60)
+
+#load save function
 
 def load_save():
     """gives the player the choice to load previous saves"""
@@ -83,7 +157,7 @@ def sleep(player):
 
 def fight(player):
     """Lets the player fight a monster"""
-    
+
     monster = new_random_monster()
 
     print(f"You leave the town and enter the woods, in the woods\n{monster["description"]}\n")
@@ -136,7 +210,7 @@ Monster health: {monster["hp"]}. Monster power: {monster["power"]}""")
                 return player
 
         elif action == "leave":
-            return player
+            display_map(player)
         
         else:
             print("Invalid input, please re-enter action.\n")
@@ -186,8 +260,9 @@ for gouls are known to be very viloent and difficult to reason with."""
 def print_welcome(player, width):
     """Creates and prints a welcome greeting string with the given name and width specified."""
 
-    player["name"] = input("Please input your name:\n")
-    greeting = f"Hello, {player["name"]}!"
+    if not player["stats"]["name"]:
+        player["stats"]["name"] = input("Please input your name:\n")
+    greeting = f"Hello, {player["stats"]["name"]}!"
     print(f"{greeting.center(width)}")
 
 #print_shop_menu function
@@ -238,7 +313,7 @@ inventory and the shops items as parameters and returns the updated inventory an
 #Testing functions - All code below this line is for testing purposes
 
 def test_functions():
-    pass
+    display_map()
 
 if __name__ == "__main__":
     test_functions()
